@@ -1,4 +1,5 @@
-'use strict'
+import { S3 } from 'aws-sdk'
+;('use strict')
 const wkhtmltopdf = require('wkhtmltopdf')
 const StripeInvoiceHtml = require('./stripeInvoiceHtml')
 const pathResolver = require('./pathResolver')
@@ -7,6 +8,16 @@ const fs = require('fs')
 
 process.env['PATH'] =
   process.env['PATH'] + ':' + process.env['LAMBDA_TASK_ROOT']
+
+// Configuration block, replace with YOUR company information
+const COMPANY_NAME = 'Arena.im'
+const COMPANY_ADDRESS = '2443 Fillmore St #380-5512'
+const COMPANY_ZIPCODE = '94115'
+const COMPANY_CITY = 'San Francisco'
+const COMPANY_COUNTRY = 'United States'
+const COMPANY_LOGO_PATH = './arena-logo-purple.png'
+const COLOR = '#2C75FF'
+const S3_BUCKET = 'arena-billing-invoices'
 
 /**
    * 
@@ -23,13 +34,13 @@ module.exports.handler = (event, context, callback) => {
   console.log(`will generate pdf for invoice ${invoice.id}`)
   const html = StripeInvoiceHtml(
     {
-      company_name: 'Arena.im',
-      company_address: '2443 Fillmore St #380-5512',
-      company_zipcode: '94115',
-      company_city: 'San Francisco',
-      company_country: 'United States',
-      company_logo: pathResolver('./arena-logo-purple.png'),
-      color: '#2C75FF'
+      company_name: COMPANY_NAME,
+      company_address: COMPANY_ADDRESS,
+      company_zipcode: COMPANY_ZIPCODE,
+      company_city: COMPANY_CITY,
+      company_country: COMPANY_COUNTRY,
+      company_logo: pathResolver(COMPANY_LOGO_PATH),
+      color: COLOR
     },
     invoice,
     clientInfo
@@ -38,7 +49,7 @@ module.exports.handler = (event, context, callback) => {
   wkhtmltopdf.command = pathResolver('./wkhtmltopdf')
   let stream = wkhtmltopdf(html, { pageSize: 'letter' })
   console.log(`pdf generated`)
-  saveToS3('arena-billing-invoices', `${invoice.id}.pdf`, stream, {
+  saveToS3(S3_BUCKET, `${invoice.id}.pdf`, stream, {
     invoiceId: invoice.id
   })
     .then(resp => {
