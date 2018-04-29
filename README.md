@@ -35,7 +35,7 @@ Change line 32 to include your logo file to the package
 1. npm install
 2. serverless deploy (https://serverless.com/framework/docs/providers/aws/guide/deploying/)
 
-### Execution
+### Usage
 
 The lambda function receives an `event` parameter that is a JSON object with the following structure:
 
